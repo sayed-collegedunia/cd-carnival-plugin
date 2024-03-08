@@ -51,7 +51,7 @@ class Cd_Carnival_Functions
             return;
         }
         $registration_number = $this->generate_unique_number(9, 'CD');
-        $this->db->insert(
+        $res =$this->db->insert(
             $this->table_name,
             array(
                 'name' => $name,
@@ -67,20 +67,30 @@ class Cd_Carnival_Functions
                 'visited' => 0,
             )
         );
+        if(!$res){
+            return false;
+        }
         return $registration_number;
     }
 
     public function updateLeadVisitors($registration, $numberOfVisitors)
     {
+        if(!$this->checkValidRegistration($registration)){
+            return ['status' => false, 'message' =>'User with registration not found'];
+        }
         $result = $this->db->update($this->table_name, array('number_of_attendents' => $numberOfVisitors), array('registration' => $registration));
-        error_log(json_encode($result));
-        return $result;
+        if($result){
+            return ['status' => true, 'message' =>'User seats updated'];
+        }else{
+            return ['status' => false, 'message' =>'User seats update failed'];
+        }
     }
 
     public function updateUserTicketUrl($data)
     {
         extract($data);
         $result = $this->db->update($this->table_name, array('ticket_url' => $pdfLink), array('registration' => $registration));
+        error_log(json_encode($result));
         return $result;
     }
 
@@ -89,7 +99,6 @@ class Cd_Carnival_Functions
         $registration = sanitize_text_field($registration);
         $query = $this->db->prepare("SELECT visited FROM {$this->table_name} WHERE registration = %s", $registration);
         $result = $this->db->get_row($query);
-        error_log(json_encode($result));
         if(empty($result)){
             return ['status' => false, 'message' =>'User with registration not found'];
         }
@@ -154,8 +163,11 @@ class Cd_Carnival_Functions
             return true;
         } else {
             $response_body = wp_remote_retrieve_body($response);
-            if($response_body['message'] == 'Error'){
-                error_log("\n============ SMS ERROR LOGS ========== \n" . json_encode($response['errors']));
+            if(!empty($response_body)){
+                $response_body = json_decode($response_body, true);
+            }
+            if(empty($response_body)|| $response_body['message'] == 'Error'){
+                error_log("\n============ SMS ERROR LOGS ========== \n" . json_encode($response_body['errors']));
                 return false;
             }
             error_log("\n============ SMS SUCCESS LOGS ========== \n" . json_encode($response_body));
@@ -187,4 +199,14 @@ class Cd_Carnival_Functions
 		}
 		else false; 
 	}
+
+    public function checkValidRegistration($reg_no){
+        $registration = sanitize_text_field($reg_no);
+        $query = $this->db->prepare("SELECT visited FROM {$this->table_name} WHERE registration = %s", $registration);
+        $result = $this->db->get_row($query);
+        if(empty($result)){
+            return false;
+        }
+        return true;
+    }
 }

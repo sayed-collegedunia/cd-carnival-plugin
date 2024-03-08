@@ -143,6 +143,7 @@ class Cd_Carnival_Admin
 
 		$options['lead_form_name'] = (isset($input['lead_form_name']) && !empty($input['lead_form_name'])) ? esc_attr($input['lead_form_name']) : '';
 		$options['capture_update'] = (isset($input['capture_update']) && !empty($input['capture_update'])) ? esc_attr($input['capture_update']) : '';
+		$options['update_visitor_form_name'] = (isset($input['update_visitor_form_name']) && !empty($input['update_visitor_form_name'])) ? esc_attr($input['update_visitor_form_name']) : '';
 		return $options;
 	}
 

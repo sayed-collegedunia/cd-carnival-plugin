@@ -113,6 +113,7 @@ class Cd_Carnival_Public
 		$options = get_option($this->plugin_name);
 		$lead_form_name = (isset($options['lead_form_name']) && !empty($options['lead_form_name'])) ? esc_attr($options['lead_form_name']) : '';
 		$capture_update_page = (isset($options['capture_update']) && !empty($options['capture_update'])) ? esc_attr($options['capture_update']) : '';
+		$update_visitor_form_name = (isset($options['update_visitor_form_name']) && !empty($options['update_visitor_form_name'])) ? esc_attr($options['update_visitor_form_name']) : '';
 
 		// Replace MY_FORM_NAME with the name you gave your form
 		if (!empty($capture_update)) {
@@ -125,20 +126,34 @@ class Cd_Carnival_Public
 			$fields[$id] = $field['value'];
 		}
 
-		if ('visitor_number_form' == $form_name) {
+		if ($update_visitor_form_name == $form_name) {
 			$meta = $record->get_form_meta(['page_url']);
 			$pageUrl = $meta['page_url']['value'];
 			$reg_no = $this->functions->getRegNumberFromUrl($pageUrl);
-			$this->functions->updateLeadVisitors($reg_no, $fields['number_of_visitor']);
+			$res = $this->functions->updateLeadVisitors($reg_no, $fields['number_of_visitor']);
+			if($res['status']){
+				$handler->add_success_message($res['message']);
+			}else{
+				$handler->add_error_message( $res['message'] );
+			}
 		} elseif ($lead_form_name == $form_name) {
 			$fields["form_name"] = $form_name;
 			$reg_no = $this->functions->insertLead($fields);
+			if(empty($reg_no)){
+				$handler->add_error_message( "Counld not generate registration number" );
+				return;
+			}
 			$fields['registration'] = $reg_no;
 			$updateLink = $this->functions->getUpdatePageLink($capture_update_page, $reg_no);
 			$qrPath = $this->generator->generateQR($reg_no);
 			$fields['pdfLink'] = $this->generator->generatePdf($fields['name'], $reg_no, $qrPath, $updateLink);
-			$this->functions->sendSms($fields);
+			$sms = $this->functions->sendSms($fields);
 			$this->functions->updateUserTicketUrl($fields);
+			if(empty($sms)){
+				$handler->add_error_message( "Counld not send sms at this moment" );
+				return;
+			}
+			$handler->add_success_message( "Sms sent for registration:".$reg_no );
 		}
 	}
 

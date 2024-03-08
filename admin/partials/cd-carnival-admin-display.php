@@ -28,6 +28,7 @@ $elementor_pages = get_posts($args);
         $options = get_option($this->plugin_name);
         $lead_form_name = (isset($options['lead_form_name']) && !empty($options['lead_form_name'])) ? esc_attr($options['lead_form_name']) : '';
         $capture_update = (isset($options['capture_update']) && !empty($options['capture_update'])) ? esc_attr($options['capture_update']) : '';
+        $update_visitor_form_name = (isset($options['update_visitor_form_name']) && !empty($options['update_visitor_form_name'])) ? esc_attr($options['update_visitor_form_name']) : '';
 
         settings_fields($this->plugin_name);
         do_settings_sections($this->plugin_name);
@@ -43,9 +44,7 @@ $elementor_pages = get_posts($args);
             <input type="text" class="lead_form_name" id="<?php echo $this->plugin_name; ?>-lead_form_name" name="<?php echo $this->plugin_name; ?>[lead_form_name]" value="<?php if (!empty($lead_form_name)) echo $lead_form_name;
                                                                                                                                                                             else echo ''; ?>" />
         </fieldset>
-        <?php
 
-        ?>
         <fieldset>
             <p><?php esc_attr_e('Please select the update capture redirection Page', 'plugin_name'); ?></p>
             <legend class="screen-reader-text">
@@ -70,6 +69,15 @@ $elementor_pages = get_posts($args);
                 echo '<small> Selected page: <a href="'.get_edit_post_link($capture_update).'">'. get_post_field( 'post_name', $capture_update ) .' </a>';
             }
             ?>
+        </fieldset>
+
+        <fieldset>
+            <p><?php esc_attr_e('Please enter the Visitor Capture Form Name', 'plugin_name'); ?></p>
+            <legend class="screen-reader-text">
+                <span><?php esc_attr_e('Please enter the Visitor Capture Form Name', 'plugin_name'); ?></span>
+            </legend>
+            <input type="text" class="update_visitor_form_name" id="<?php echo $this->plugin_name; ?>-update_visitor_form_name" name="<?php echo $this->plugin_name; ?>[update_visitor_form_name]" value="<?php if (!empty($update_visitor_form_name)) echo $update_visitor_form_name;
+                                                                                                                                                                            else echo ''; ?>" />
         </fieldset>
 
         <?php submit_button(__('Save all changes', 'plugin_name'), 'primary', 'submit', TRUE); ?>
